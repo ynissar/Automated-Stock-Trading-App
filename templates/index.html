@@ -9,6 +9,18 @@
 <body>
     <div class="ui container">
         <h1>Stock list</h1>
+
+        <form method="get">
+            <select name="filter">
+                <option value="">All Stocks</option>
+                <option value="new_intraday_highs">New Intraday Highs</option>
+                <option value="new_closing_highs">New Closing Highs</option>
+                <option value="new_intraday_lows">New Intraday Lows</option>
+                <option value="new_closing_lows">New Closing Lows</option>
+            </select>
+            <input type="submit" />
+        </form>
+
         <table class="ui selectable striped table">
             <thead>
                 <tr>
