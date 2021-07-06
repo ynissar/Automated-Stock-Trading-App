@@ -9,4 +9,8 @@ cursor.execute("""drop table stock_price""")
 
 cursor.execute("""drop table stock""")
 
+cursor.execute("""drop table stock_strategy""")
+
+cursor.execute("""drop table strategy""")
+
 connection.commit()

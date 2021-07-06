@@ -9,7 +9,8 @@ cursor.execute("""
         id INTEGER PRIMARY KEY, 
         symbol TEXT NOT NULL UNIQUE, 
         name TEXT NOT NULL,
-        exchange TEXT NOT NULL
+        exchange TEXT NOT NULL,
+        shortable BOOLEAN NOT NULL
     )
 """)
 cursor.execute("""
@@ -22,6 +23,9 @@ cursor.execute("""
         low NOT NULL, 
         close NOT NULL,  
         volume NOT NULL,
+        sma_20,
+        sma_50,
+        rsi_14,
         FOREIGN KEY (stock_id) REFERENCES stock (id)
     )
 """)

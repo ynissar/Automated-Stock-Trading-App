@@ -18,7 +18,7 @@ connection.row_factory = sqlite3.Row
 cursor = connection.cursor()
 
 cursor.execute("""
-    SELECT id from strategy WHERE name = 'opening_range_breakout'
+    SELECT id from strategy WHERE name = 'opening_range_breakdown'
 """)
 
 strategy_id = cursor.fetchone()['id']
@@ -33,8 +33,6 @@ cursor.execute("""
 stocks = cursor.fetchall()
 
 symbols = [stock['symbol'] for stock in stocks]
-
-print(symbols)
 
 current_date = date.today().isoformat()
 
@@ -71,32 +69,36 @@ for symbol in symbols:
     after_opening_range_mask = minute_bars.index >= end_minute_bar
     after_opening_range_bars = minute_bars.loc[after_opening_range_mask]
 
-    after_opening_range_breakout = after_opening_range_bars[
-        after_opening_range_bars[symbol, 'close'] > opening_range_high]
+    after_opening_range_breakdown = after_opening_range_bars[
+        after_opening_range_bars[symbol, 'close'] < opening_range_low]
 
-    if not after_opening_range_breakout.empty:
+    if not after_opening_range_breakdown.empty:
         if symbol not in existing_order_symbols:
-            limit_price = after_opening_range_breakout.iloc[0][symbol, 'close']
+            limit_price = after_opening_range_breakdown.iloc[0][symbol, 'close']
 
-            messages.append(
-                f"placing order for {symbol} at {limit_price}, closed_above {opening_range_high} \n\n {after_opening_range_breakout.iloc[0][symbol]}\n\n")
+            message = f"selling short for {symbol} at {limit_price}, closed below {opening_range_low} \n\n {after_opening_range_breakdown.iloc[0][symbol]}\n\n"
 
-            api.submit_order(
-                symbol=symbol,
-                side='buy',
-                type='limit',
-                qty='100',
-                time_in_force='day',
-                order_class='bracket',
-                limit_price=limit_price,
-                take_profit=dict(
-                    limit_price=limit_price + opening_range,
-                ),
-                stop_loss=dict(
-                    stop_price=limit_price - opening_range,
+            messages.append(message)
+            print(message)
+            try:
+
+                api.submit_order(
+                    symbol=symbol,
+                    side='sell',
+                    type='limit',
+                    qty='100',
+                    time_in_force='day',
+                    order_class='bracket',
+                    limit_price=limit_price,
+                    take_profit=dict(
+                        limit_price=limit_price - opening_range,
+                    ),
+                    stop_loss=dict(
+                        stop_price=limit_price + opening_range,
+                    )
                 )
-            )
-
+            except Exception as e:
+                print(f"could not submit order {e}")
         else:
             print(f"Already an order for {symbol}, skipping")
 
