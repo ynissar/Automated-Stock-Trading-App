@@ -1,3 +1,6 @@
+# Uses REST API to create a dynamic website for the user to use to see stocks they can perform strategies on using the Alpaca Trade API
+# displays stocks, stocks which the user is currently performing a strategy on and other filters
+
 from fastapi import FastAPI, Request, Form
 import sqlite3
 from fastapi.responses import RedirectResponse
@@ -5,10 +8,11 @@ import config
 from fastapi.templating import Jinja2Templates
 from datetime import date
 
-app = FastAPI()
-templates = Jinja2Templates(directory="templates")
+app = FastAPI() # REST API used to create a dynamic website
+templates = Jinja2Templates(directory="templates") # used to display an HTML page
 
-
+# default page
+# displays all stocks
 @app.get("/")
 def index(request: Request):
     stock_filter = request.query_params.get('filter', False)
@@ -17,6 +21,8 @@ def index(request: Request):
     connection.row_factory = sqlite3.Row
     cursor = connection.cursor()
 
+    # if the filter is new_closing_highs
+    # displays stocks and displays the maximum close price
     if stock_filter == 'new_closing_highs':
         cursor.execute("""select * from (
 	select symbol, name, stock_id, max(close), date
@@ -24,6 +30,7 @@ def index(request: Request):
 	group by stock_id
 	order by symbol
 	) where date = (select max(date) from stock_price) """)
+     # displays stocks and displays the minimum close price
     elif stock_filter == 'new_closing_lows':
         cursor.execute("""select * from (
 	select symbol, name, stock_id, min(close), date
@@ -38,6 +45,7 @@ def index(request: Request):
 
     rows = cursor.fetchall()
 
+    # displays RSI, SMA 20, SMA 50 and close
     cursor.execute("""
         select symbol, rsi_14, sma_20, sma_50, close
         from stock join stock_price on stock_price.stock_id = stock.id
@@ -50,9 +58,10 @@ def index(request: Request):
     for row in indicator_rows:
         indicator_values[row['symbol']] = row
 
+    # returns index template providing the stock rows and assigning each row to an indicator value (the stocks's symbol)
     return templates.TemplateResponse("index.html", {"request": request, "stocks": rows, "indicator_values": indicator_values})
 
-
+# when the user is looking at a specific stock
 @app.get("/stock/{symbol}")
 def stock_detail(request: Request, symbol):
     connection = sqlite3.connect(config.DB_PATH)
@@ -79,7 +88,8 @@ def stock_detail(request: Request, symbol):
 
     return templates.TemplateResponse("stock_detail.html", {"request": request, "stock": row, "bars": prices, "strategies": strategies})
 
-
+# posting a stock onto a strategy
+# updates stock_strategy table to reflect the stock being added 
 @app.post("/apply_strategy")
 def apply_strategy(strategy_id: int = Form(...), stock_id: int = Form(...)):
     connection = sqlite3.connect(config.DB_PATH)
@@ -93,7 +103,7 @@ def apply_strategy(strategy_id: int = Form(...), stock_id: int = Form(...)):
 
     return RedirectResponse(url=f"/strategy/{strategy_id}", status_code=303)
 
-
+# when the user is viewing the stocks with a strategy currently being applied onto them
 @app.get("/strategy/{strategy_id}")
 def strategy(request: Request, strategy_id):
     connection = sqlite3.connect(config.DB_PATH)

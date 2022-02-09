@@ -1,9 +1,13 @@
+# Used to create tables 
+# Tables: stocks, stock prices, strategies and stocks with strategies applied to them 
+
 import sqlite3
 
 connection = sqlite3.connect('app.db')
 
 cursor = connection.cursor()
 
+# Creates a table for stocks
 cursor.execute("""
     CREATE TABLE IF NOT EXISTS stock (
         id INTEGER PRIMARY KEY, 
@@ -13,6 +17,8 @@ cursor.execute("""
         shortable BOOLEAN NOT NULL
     )
 """)
+
+# Creates a table for stock prices (references stock id)
 cursor.execute("""
     CREATE TABLE IF NOT EXISTS stock_price (
         id INTEGER PRIMARY KEY, 
@@ -30,6 +36,7 @@ cursor.execute("""
     )
 """)
 
+# Creates a table for strategies
 cursor.execute("""
     Create table if not exists strategy (
         id INTEGER PRIMARY KEY,
@@ -37,6 +44,7 @@ cursor.execute("""
     )
 """)
 
+# Creates a table for stocks with strategies applied to them (references stock id and strategy id)
 cursor.execute("""
     Create table if not exists stock_strategy (
         stock_id INTEGER NOT NULL,
@@ -46,6 +54,7 @@ cursor.execute("""
     )
 """)
 
+# two stock strategies
 strategies = ['opening_range_breakout', 'opening_range_breakdown']
 
 for strategy in strategies:
@@ -53,4 +62,5 @@ for strategy in strategies:
         INSERT INTO strategy (name) VALUES (?)
     """, (strategy,))
 
+# commits changes to sqlite
 connection.commit()

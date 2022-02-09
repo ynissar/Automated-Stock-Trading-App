@@ -1,3 +1,5 @@
+# Used for determining if Daylight Savings Time is currently in effect
+
 from datetime import datetime
 import pytz
 
