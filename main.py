@@ -86,6 +86,7 @@ def stock_detail(request: Request, symbol):
 
     prices = cursor.fetchall()
 
+    # returns html page template for a specific stock with details about it. Provides it with the stock's info, prices and what strategy is being applied
     return templates.TemplateResponse("stock_detail.html", {"request": request, "stock": row, "bars": prices, "strategies": strategies})
 
 # posting a stock onto a strategy
