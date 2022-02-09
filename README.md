@@ -10,7 +10,7 @@ Technology used: SQL, SQLite, Python, FAST API, NumPy, smtplib
 ## Screenshots
 
 Default/Index Page
-![Index](./screenshots/indexx.png)
+![Index](./screenshots/index.png)
 
 Individual Stock Page
 ![Index](./screenshots/stockPage.png)
